@@ -64,6 +64,7 @@ class Mapper:
 class CoordTransform:
     """
     Класс, используемый для трансформации координат
+    расстояний
     Атрибуты класса a, b, esq - константы,
     определенные World Geodetic System 1984 (WGS84)
     """
@@ -76,10 +77,10 @@ class CoordTransform:
         """
         используется для преобразования геодезических координат
         в координаты ECEF
-        :param lat: широта(тип- str)
-        :param lon: долгота(тип- str)
+        :param lat: широта(тип- float)
+        :param lon: долгота(тип- float)
         :param alt: тип float
-        :return: кортеж из
+        :return: tuple из
         геоцентрических координат x, y, z точки
         """
         lat, lon = radians(lat), radians(lon)
@@ -88,6 +89,16 @@ class CoordTransform:
         y = (cls.a / xi + alt) * cos(lat) * sin(lon)
         z = (cls.a / xi * (1 - cls.esq) + alt) * sin(lat)
         return x, y, z
+
+    @classmethod
+    def euclidean_distance(cls, distance):
+        """преобразует заданное расстояние из аргумента distance
+        в Евклидово расстояние
+        :param distance: расстояние в КМ
+        """
+        return 2 * cls.a * sin(distance / (2 * cls.b))
+
+
 
 
 if __name__ == '__main__':
