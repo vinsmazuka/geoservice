@@ -29,9 +29,14 @@ class CsvReader(ABC):
 
 
 class Mapper:
-    """Предназначен для создания карты с центром в заданной точке"""
+    """
+    Предназначен для создания карты с центром в заданной точке.
+    """
     token = configuration['API-ключ']
     secret = configuration['Секретный ключ']
+    geocoder = Dadata
+    map_creator = folium.Map
+    mark_creator = folium.Marker
 
     def __init__(self, adress):
         """
@@ -40,31 +45,42 @@ class Mapper:
         """
         self.adress = adress
 
-    def create_map(self, geocoder=Dadata):
+    def create_map(self):
         """
         Создает карту, с центом в точке с адресом, указанным в
         параметре экземпляра self.adress
-        :param geocoder: - класс, используемый для геокодирования
-        адреса, по умолчанию - Dadata
         :return: объект-карту класса folium.Map
         """
-        with geocoder(self.token, self.secret) as dadata:
+        with self.geocoder(self.token, self.secret) as dadata:
             address_info = dadata.clean(name="address", source=self.adress)
             lat = address_info['geo_lat']
             lon = address_info['geo_lon']
             coordinates = [lat, lon]
-            new_map = folium.Map(location=coordinates,
-                                 zoom_start=13)
-            folium.Marker(
-                location=coordinates,
-                popup=address_info['result']).add_to(new_map)
+            new_map = self.map_creator(location=coordinates,
+                                       zoom_start=13)
+            self.mark_creator(location=coordinates,
+                              popup=address_info['result']).add_to(new_map)
             return new_map
+
+    def geocode(self):
+        """
+        Возвращает геодезические координаты адреса,
+        указанного в параметре экземпляра self.adress
+        :return: список, первый элемент списка - широта,
+        второй - долгота
+        """
+        with self.geocoder(self.token, self.secret) as dadata:
+            address_info = dadata.clean(name="address", source=self.adress)
+            lat = address_info['geo_lat']
+            lon = address_info['geo_lon']
+            coordinates = [lat, lon]
+        return coordinates
 
 
 class CoordTransform:
     """
     Класс, используемый для трансформации координат
-    расстояний
+    расстояний.
     Атрибуты класса a, b, esq - константы,
     определенные World Geodetic System 1984 (WGS84)
     """
@@ -92,17 +108,16 @@ class CoordTransform:
 
     @classmethod
     def euclidean_distance(cls, distance):
-        """преобразует заданное расстояние из аргумента distance
+        """преобразует заданное расстояние из параметра distance
         в Евклидово расстояние
-        :param distance: расстояние в КМ
+        :param distance: расстояние в КМ, тип - float
+        :return: расстояние в КМ, тип - float
         """
         return 2 * cls.a * sin(distance / (2 * cls.b))
 
 
-
-
 if __name__ == '__main__':
-    # map1 = Mapper('Сочи').create_map()
-    # map1.save('new_map.html')
+    map1 = Mapper('Владикавказ').create_map()
+    map1.save('new_map.html')
     # print(type(CoordTransform.geodetic2ecef(50.25, 60.18)))
 
