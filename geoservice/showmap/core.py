@@ -116,8 +116,38 @@ class CoordTransform:
         return 2 * cls.a * sin(distance / (2 * cls.b))
 
 
+def find_neighbours(cities, radius, coordinates):
+    """
+    Находит города, находящиееся в радиусе "radius" км
+    от точки с координатами "coordinates"
+    :param cities: - cписок городов, тип - dict
+    :param radius: евклидово расстояние, тип - float
+    :param coordinates: список, первый элемент списка - широта,
+    второй - долгота, тип - list
+    :return: словарь с названиями городов, тип - list
+    """
+    ecef_cities = [[city['city'], CoordTransform.geodetic2ecef(float(city['geo_lat']),
+                                                               float(city['geo_lon']))] for city in cities]
+
+    tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
+    central_point = CoordTransform.geodetic2ecef(float(coordinates[0]),
+                                                 float(coordinates[1]))
+    result = tree.query_ball_point(central_point, r=radius)
+    cities_around = [x[0] for x in operator.itemgetter(*result)(ecef_cities)]
+    return cities_around
+
+
 if __name__ == '__main__':
-    map1 = Mapper('Владикавказ').create_map()
-    map1.save('new_map.html')
-    # print(type(CoordTransform.geodetic2ecef(50.25, 60.18)))
+    print(sorted(find_neighbours(
+        cities=CsvReader.read_file('city.csv'),
+        radius=CoordTransform.euclidean_distance(500),
+        coordinates=Mapper('Хабаровск').geocode())
+    )
+    )
+
+
+
+
+
+
 
