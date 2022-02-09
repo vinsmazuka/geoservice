@@ -37,6 +37,7 @@ class Mapper:
     geocoder = Dadata
     map_creator = folium.Map
     mark_creator = folium.Marker
+    icon_creator = folium.Icon
 
     def __init__(self, adress):
         """
@@ -45,7 +46,7 @@ class Mapper:
         """
         self.adress = adress
 
-    def create_map(self):
+    def create_map(self, cities, radius):
         """
         Создает карту, с центом в точке с адресом, указанным в
         параметре экземпляра self.adress
@@ -60,21 +61,40 @@ class Mapper:
                                        zoom_start=13)
             self.mark_creator(location=coordinates,
                               popup=address_info['result']).add_to(new_map)
-            return new_map
+        if radius:
+            all_cities = {city['city']: {'geo_lat': city['geo_lat'],
+                                         'geo_lon': city['geo_lon']} for city in cities}
+            ecef_cities = [[city['city'],
+                            CoordTransform.geodetic2ecef(float(city['geo_lat']),
+                                                         float(city['geo_lon']))] for city in cities]
+            tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
+            central_point = CoordTransform.geodetic2ecef(float(coordinates[0]),
+                                                         float(coordinates[1]))
+            indexes = tree.query_ball_point(central_point, r=radius)
+            print(radius)
+            cities_around = [x[0] for x in operator.itemgetter(*indexes)(ecef_cities)]
+            for key, value in all_cities.items():
+                if key in cities_around and key != address_info['city']:
+                    self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
+                                      popup=key,
+                                      icon=self.icon_creator(color='gray')).add_to(new_map)
+        return new_map
 
     def geocode(self):
         """
         Возвращает геодезические координаты адреса,
-        указанного в параметре экземпляра self.adress
-        :return: список, первый элемент списка - широта,
-        второй - долгота
+        указанного в параметре экземпляра self.adress и название
+        города
+        :return: словарь, тип - dict
         """
         with self.geocoder(self.token, self.secret) as dadata:
             address_info = dadata.clean(name="address", source=self.adress)
             lat = address_info['geo_lat']
             lon = address_info['geo_lon']
             coordinates = [lat, lon]
-        return coordinates
+            result = {'coordinates': coordinates,
+                      'input_city_name': address_info['city']}
+        return result
 
 
 class CoordTransform:
@@ -116,34 +136,12 @@ class CoordTransform:
         return 2 * cls.a * sin(distance / (2 * cls.b))
 
 
-def find_neighbours(cities, radius, coordinates):
-    """
-    Находит города, находящиееся в радиусе "radius" км
-    от точки с координатами "coordinates"
-    :param cities: - cписок городов, тип - dict
-    :param radius: евклидово расстояние, тип - float
-    :param coordinates: список, первый элемент списка - широта,
-    второй - долгота, тип - list
-    :return: словарь с названиями городов, тип - list
-    """
-    ecef_cities = [[city['city'], CoordTransform.geodetic2ecef(float(city['geo_lat']),
-                                                               float(city['geo_lon']))] for city in cities]
-
-    tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
-    central_point = CoordTransform.geodetic2ecef(float(coordinates[0]),
-                                                 float(coordinates[1]))
-    result = tree.query_ball_point(central_point, r=radius)
-    cities_around = [x[0] for x in operator.itemgetter(*result)(ecef_cities)]
-    return cities_around
-
-
 if __name__ == '__main__':
-    print(sorted(find_neighbours(
-        cities=CsvReader.read_file('city.csv'),
-        radius=CoordTransform.euclidean_distance(500),
-        coordinates=Mapper('Хабаровск').geocode())
-    )
-    )
+    new_map = Mapper('москва').create_map(cities=CsvReader.read_file('city.csv'),
+                                          radius=CoordTransform.euclidean_distance(300))
+    new_map.save('new_map.html')
+    # print(CoordTransform.euclidean_distance(300))
+
 
 
 
