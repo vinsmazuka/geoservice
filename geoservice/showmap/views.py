@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from django.http import HttpResponse
 
-# Create your views here.
+
+message = 'привет, здесь будет выводиться карта'
+
+
+def index(request):
+    return HttpResponse(message)
