@@ -45,7 +45,7 @@ class Mapper:
         Создает карту, с центом в точке с адресом, указанным в
         параметре экземпляра self.adress
         :param geocoder: - класс, используемый для геокодирования
-        данных, по умолчанию - Dadata
+        адреса, по умолчанию - Dadata
         :return: объект-карту класса folium.Map
         """
         with geocoder(self.token, self.secret) as dadata:
@@ -61,7 +61,37 @@ class Mapper:
             return new_map
 
 
+class CoordTransform:
+    """
+    Класс, используемый для трансформации координат
+    Атрибуты класса a, b, esq - константы,
+    определенные World Geodetic System 1984 (WGS84)
+    """
+    a = 6378.137
+    b = 6356.7523142
+    esq = 6.69437999014 * 0.001
+
+    @classmethod
+    def geodetic2ecef(cls, lat, lon, alt=0):
+        """
+        используется для преобразования геодезических координат
+        в координаты ECEF
+        :param lat: широта(тип- str)
+        :param lon: долгота(тип- str)
+        :param alt: тип float
+        :return: кортеж из
+        геоцентрических координат x, y, z точки
+        """
+        lat, lon = radians(lat), radians(lon)
+        xi = sqrt(1 - cls.esq * sin(lat))
+        x = (cls.a / xi + alt) * cos(lat) * cos(lon)
+        y = (cls.a / xi + alt) * cos(lat) * sin(lon)
+        z = (cls.a / xi * (1 - cls.esq) + alt) * sin(lat)
+        return x, y, z
+
+
 if __name__ == '__main__':
-    map1 = Mapper('Сочи').create_map()
-    map1.save('new_map.html')
+    # map1 = Mapper('Сочи').create_map()
+    # map1.save('new_map.html')
+    # print(type(CoordTransform.geodetic2ecef(50.25, 60.18)))
 
