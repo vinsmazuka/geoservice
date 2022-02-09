@@ -46,7 +46,7 @@ class Mapper:
         """
         self.adress = adress
 
-    def create_map(self, cities, radius):
+    def create_map(self, cities, radius=None):
         """
         Создает карту, с центом в точке с адресом, указанным в
         параметре экземпляра self.adress
@@ -61,19 +61,25 @@ class Mapper:
                                        zoom_start=13)
             self.mark_creator(location=coordinates,
                               popup=address_info['result']).add_to(new_map)
-        if radius:
-            all_cities = {city['city']: {'geo_lat': city['geo_lat'],
-                                         'geo_lon': city['geo_lon']} for city in cities}
-            ecef_cities = [[city['city'],
-                            CoordTransform.geodetic2ecef(float(city['geo_lat']),
-                                                         float(city['geo_lon']))] for city in cities]
+        if radius is None:
+            pass
+        else:
+            cities = {
+                city['city']:
+                    {'geo_lat': city['geo_lat'],
+                     'geo_lon': city['geo_lon'],
+                     'ecef': CoordTransform.geodetic2ecef(float(city['geo_lat']),
+                                                          float(city['geo_lon']))} for city in cities
+            }
+            ecef_cities = []
+            for key, value in cities.items():
+                ecef_cities.append((key, value['ecef']))
             tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
             central_point = CoordTransform.geodetic2ecef(float(coordinates[0]),
                                                          float(coordinates[1]))
-            indexes = tree.query_ball_point(central_point, r=radius)
-            print(radius)
-            cities_around = [x[0] for x in operator.itemgetter(*indexes)(ecef_cities)]
-            for key, value in all_cities.items():
+            result = tree.query_ball_point([central_point], r=radius)
+            cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
+            for key, value in cities.items():
                 if key in cities_around and key != address_info['city']:
                     self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
                                       popup=key,
@@ -137,10 +143,10 @@ class CoordTransform:
 
 
 if __name__ == '__main__':
-    new_map = Mapper('москва').create_map(cities=CsvReader.read_file('city.csv'),
-                                          radius=CoordTransform.euclidean_distance(300))
+    adress = 'Москва'
+    new_map = Mapper(adress).create_map(cities=CsvReader.read_file('city.csv'),
+                                        radius=CoordTransform.euclidean_distance(400))
     new_map.save('new_map.html')
-    # print(CoordTransform.euclidean_distance(300))
 
 
 
