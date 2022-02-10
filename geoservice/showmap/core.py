@@ -69,7 +69,7 @@ class Mapper:
                 print('адрес не корректный')
             else:
                 if radius is None:
-                    pass
+                    return new_map
                 else:
                     cities = {
                         city['city']:
@@ -134,10 +134,10 @@ class Transform:
 
 
 if __name__ == '__main__':
-    adr = 'Норильск'
-    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
-                                     radius=Transform.euclidean_distance(400))
-    # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
+    adr = 'Сочи'
+    # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
+    #                                  radius=Transform.euclidean_distance(400))
+    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
     new_map.save('new_map.html')
 
 
