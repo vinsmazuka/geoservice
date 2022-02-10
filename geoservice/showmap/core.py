@@ -1,7 +1,6 @@
 import csv
 import operator
 from math import radians, cos, sin, sqrt
-from abc import ABC
 import numpy
 import folium
 from scipy.spatial import KDTree
@@ -9,7 +8,7 @@ from dadata import Dadata
 from datadata_config import configuration
 
 
-class CsvReader(ABC):
+class CsvReader:
     """
     Предназначен для чтения данных из CSV файла
     """
@@ -49,7 +48,12 @@ class Mapper:
     def create_map(self, cities, radius=None):
         """
         Создает карту, с центом в точке с адресом, указанным в
-        параметре экземпляра self.address
+        параметре экземпляра self.address,
+        создает на карте маркеры городов в радиусе radius,
+        если данный аргумент задан
+        :param cities: - словарт, содержащий информацию
+        о городах(тип - dict)
+        :param radius: радиус в км(тип - float)
         :return: объект-карту класса folium.Map
         """
         if not self.address:
@@ -96,7 +100,7 @@ class Mapper:
 
 class Transform:
     """
-    Класс, используемый для трансформации координат
+    Класс, используемый для трансформации координат и
     расстояний.
     Атрибуты класса a, b, esq - константы,
     определенные World Geodetic System 1984 (WGS84)
@@ -134,10 +138,10 @@ class Transform:
 
 
 if __name__ == '__main__':
-    adr = 'Сочи'
-    # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
-    #                                  radius=Transform.euclidean_distance(400))
-    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
+    adr = 'Самара'
+    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
+                                     radius=Transform.euclidean_distance(400))
+    # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
     new_map.save('new_map.html')
 
 
