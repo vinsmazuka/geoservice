@@ -1,3 +1,3 @@
-configuration = {'API-ключ': '796fd0c611dbf86c57eabc6a2f8a8e3aee81045a',
-                 'Секретный ключ': '1eaad2d1b4892ae7a2b0e6830194332b365f2f58'}
+configuration = {'API-ключ': '9e06f23622c99d35ae54a97d22636b92b994e43a',
+                 'Секретный ключ': 'eb8ac87e7d0a821226aeea181794cda051b80a73'}
 
