@@ -1,8 +1,5 @@
-from django.http import HttpResponse
-
-
-message = 'привет, здесь будет выводиться карта'
+from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse(message)
+    return render(request, 'showmap/index.html')
