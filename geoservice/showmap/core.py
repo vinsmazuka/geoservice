@@ -16,6 +16,7 @@ class CsvReader:
     def read_file(path):
         """
         Читает данные из CSV файла, возвращает данные в виде словаря
+        :param path: путь к файлу(тип - str)
         """
         try:
             with open(path, 'r', newline='', encoding="utf-8") as csv_file:
@@ -41,7 +42,7 @@ class Mapper:
     def __init__(self, address):
         """
         Создает экземпляр класса Mapper
-        :param address: - адрес на карте, тип - str
+        :param address: - адрес на карте(тип - str)
         """
         self.address = address
 
@@ -57,7 +58,7 @@ class Mapper:
         :return: объект-карту класса folium.Map
         """
         if not self.address:
-            print('адрес не задан')
+            return 'адрес не задан'
         else:
             try:
                 with self.geocoder(self.token, self.secret) as dadata:
@@ -70,18 +71,21 @@ class Mapper:
                     self.mark_creator(location=coordinates,
                                       popup=address_info['result']).add_to(new_map)
             except ValueError:
-                print('адрес не корректный')
+                return 'введенный адрес - не корректный'
             else:
                 if radius is None:
                     return new_map
+                elif radius == '':
+                    return new_map
+                elif not isinstance(radius, float):
+                    return 'радиус должен быть целым числом, либо числом с плавающей точкой'
                 else:
                     cities = {
                         city['city']:
                             {'geo_lat': city['geo_lat'],
                              'geo_lon': city['geo_lon'],
                              'ecef': Transform.geodetic2ecef(float(city['geo_lat']),
-                                                             float(city['geo_lon']))} for city in cities
-                    }
+                                                             float(city['geo_lon']))} for city in cities}
                     ecef_cities = []
                     for key, value in cities.items():
                         ecef_cities.append((key, value['ecef']))
@@ -117,8 +121,8 @@ class Transform:
         :param lat: широта(тип- float)
         :param lon: долгота(тип- float)
         :param alt: тип float
-        :return: tuple из
-        геоцентрических координат точки - x, y, z
+        :return: кортеж из
+        геоцентрических координат точки - x, y, z(тип - tuple)
         """
         lat, lon = radians(lat), radians(lon)
         xi = sqrt(1 - cls.esq * sin(lat))
@@ -131,17 +135,23 @@ class Transform:
     def euclidean_distance(cls, distance):
         """преобразует заданное расстояние из параметра distance
         в Евклидово расстояние
-        :param distance: расстояние в КМ, тип - float
+        :param distance: расстояние в КМ(тип - str)
         :return: расстояние в КМ, тип - float
         """
-        return 2 * cls.a * sin(distance / (2 * cls.b))
+        try:
+            2 * cls.a * sin(float(distance) / (2 * cls.b))
+        except ValueError:
+            return distance
+        else:
+            return 2 * cls.a * sin(float(distance) / (2 * cls.b))
 
 
 if __name__ == '__main__':
-    adr = 'Самара'
+    adr = 'тольdsfятти'
     new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
-                                     radius=Transform.euclidean_distance(400))
+                                     radius=Transform.euclidean_distance('15,5'))
     # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
+    print(new_map)
     new_map.save('new_map.html')
 
 
