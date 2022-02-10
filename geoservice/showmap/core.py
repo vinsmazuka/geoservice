@@ -39,21 +39,21 @@ class Mapper:
     mark_creator = folium.Marker
     icon_creator = folium.Icon
 
-    def __init__(self, adress):
+    def __init__(self, address):
         """
         Создает экземпляр класса Mapper
-        :param adress: - адрес на карте, тип - str
+        :param address: - адрес на карте, тип - str
         """
-        self.adress = adress
+        self.address = address
 
     def create_map(self, cities, radius=None):
         """
         Создает карту, с центом в точке с адресом, указанным в
-        параметре экземпляра self.adress
+        параметре экземпляра self.address
         :return: объект-карту класса folium.Map
         """
         with self.geocoder(self.token, self.secret) as dadata:
-            address_info = dadata.clean(name="address", source=self.adress)
+            address_info = dadata.clean(name="address", source=self.address)
             lat = address_info['geo_lat']
             lon = address_info['geo_lon']
             coordinates = [lat, lon]
@@ -68,15 +68,15 @@ class Mapper:
                 city['city']:
                     {'geo_lat': city['geo_lat'],
                      'geo_lon': city['geo_lon'],
-                     'ecef': CoordTransform.geodetic2ecef(float(city['geo_lat']),
-                                                          float(city['geo_lon']))} for city in cities
+                     'ecef': Transform.geodetic2ecef(float(city['geo_lat']),
+                                                     float(city['geo_lon']))} for city in cities
             }
             ecef_cities = []
             for key, value in cities.items():
                 ecef_cities.append((key, value['ecef']))
             tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
-            central_point = CoordTransform.geodetic2ecef(float(coordinates[0]),
-                                                         float(coordinates[1]))
+            central_point = Transform.geodetic2ecef(float(coordinates[0]),
+                                                    float(coordinates[1]))
             result = tree.query_ball_point([central_point], r=radius)
             cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
             for key, value in cities.items():
@@ -86,24 +86,8 @@ class Mapper:
                                       icon=self.icon_creator(color='gray')).add_to(new_map)
         return new_map
 
-    def geocode(self):
-        """
-        Возвращает геодезические координаты адреса,
-        указанного в параметре экземпляра self.adress и название
-        города
-        :return: словарь, тип - dict
-        """
-        with self.geocoder(self.token, self.secret) as dadata:
-            address_info = dadata.clean(name="address", source=self.adress)
-            lat = address_info['geo_lat']
-            lon = address_info['geo_lon']
-            coordinates = [lat, lon]
-            result = {'coordinates': coordinates,
-                      'input_city_name': address_info['city']}
-        return result
 
-
-class CoordTransform:
+class Transform:
     """
     Класс, используемый для трансформации координат
     расстояний.
@@ -123,7 +107,7 @@ class CoordTransform:
         :param lon: долгота(тип- float)
         :param alt: тип float
         :return: tuple из
-        геоцентрических координат x, y, z точки
+        геоцентрических координат точки - x, y, z
         """
         lat, lon = radians(lat), radians(lon)
         xi = sqrt(1 - cls.esq * sin(lat))
@@ -143,9 +127,9 @@ class CoordTransform:
 
 
 if __name__ == '__main__':
-    adress = 'Москва'
-    new_map = Mapper(adress).create_map(cities=CsvReader.read_file('city.csv'),
-                                        radius=CoordTransform.euclidean_distance(400))
+    adr = 'Хабаровск Вороилова 3'
+    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
+                                     radius=Transform.euclidean_distance(400))
     new_map.save('new_map.html')
 
 
