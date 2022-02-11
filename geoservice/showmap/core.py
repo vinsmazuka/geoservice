@@ -5,7 +5,7 @@ import numpy
 import folium
 from scipy.spatial import KDTree
 from dadata import Dadata
-from datadata_config import configuration
+from . import datadata_config
 
 
 class CsvReader:
@@ -32,8 +32,8 @@ class Mapper:
     """
     Предназначен для создания карты с центром в заданной точке.
     """
-    token = configuration['API-ключ']
-    secret = configuration['Секретный ключ']
+    token = datadata_config.configuration['API-ключ']
+    secret = datadata_config.configuration['Секретный ключ']
     geocoder = Dadata
     map_creator = folium.Map
     mark_creator = folium.Marker
@@ -146,13 +146,13 @@ class Transform:
             return 2 * cls.a * sin(float(distance) / (2 * cls.b))
 
 
-if __name__ == '__main__':
-    adr = 'тольdsfятти'
-    new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
-                                     radius=Transform.euclidean_distance('15,5'))
-    # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
-    print(new_map)
-    new_map.save('new_map.html')
+# if __name__ == '__main__':
+#     adr = 'тольdsfятти'
+#     new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
+#                                      radius=Transform.euclidean_distance('15,5'))
+#     # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
+#     print(new_map)
+#     new_map.save('new_map.html')
 
 
 
