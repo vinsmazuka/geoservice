@@ -67,7 +67,8 @@ class Mapper:
                     lon = address_info['geo_lon']
                     coordinates = [lat, lon]
                     new_map = self.map_creator(location=coordinates,
-                                               zoom_start=13)
+                                               zoom_start=13,
+                                               height='70%')
                     self.mark_creator(location=coordinates,
                                       popup=address_info['result']).add_to(new_map)
             except ValueError:
@@ -145,14 +146,6 @@ class Transform:
         else:
             return 2 * cls.a * sin(float(distance) / (2 * cls.b))
 
-
-# if __name__ == '__main__':
-#     adr = 'тольdsfятти'
-#     new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'),
-#                                      radius=Transform.euclidean_distance('15,5'))
-#     # new_map = Mapper(adr).create_map(cities=CsvReader.read_file('city.csv'))
-#     print(new_map)
-#     new_map.save('new_map.html')
 
 
 
