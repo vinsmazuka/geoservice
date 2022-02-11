@@ -57,51 +57,47 @@ class Mapper:
         :param radius: радиус в км(тип - float)
         :return: объект-карту класса folium.Map
         """
-        if not self.address:
-            return 'адрес не задан'
+        try:
+            with self.geocoder(self.token, self.secret) as dadata:
+                address_info = dadata.clean(name="address", source=self.address)
+                lat = address_info['geo_lat']
+                lon = address_info['geo_lon']
+                coordinates = [lat, lon]
+                new_map = self.map_creator(location=coordinates,
+                                           zoom_start=13,
+                                           height='70%')
+                self.mark_creator(location=coordinates,
+                                  popup=address_info['result']).add_to(new_map)
+        except ValueError:
+            return 'введенный адрес - не корректный, или не существует'
         else:
-            try:
-                with self.geocoder(self.token, self.secret) as dadata:
-                    address_info = dadata.clean(name="address", source=self.address)
-                    lat = address_info['geo_lat']
-                    lon = address_info['geo_lon']
-                    coordinates = [lat, lon]
-                    new_map = self.map_creator(location=coordinates,
-                                               zoom_start=13,
-                                               height='70%')
-                    self.mark_creator(location=coordinates,
-                                      popup=address_info['result']).add_to(new_map)
-            except ValueError:
-                return 'введенный адрес - не корректный'
+            if radius is None:
+                return new_map
+            elif radius == '':
+                return new_map
+            elif not isinstance(radius, float):
+                return 'радиус должен быть целым числом, либо числом с плавающей точкой'
             else:
-                if radius is None:
-                    return new_map
-                elif radius == '':
-                    return new_map
-                elif not isinstance(radius, float):
-                    return 'радиус должен быть целым числом, либо числом с плавающей точкой'
-                else:
-                    cities = {
-                        city['city']:
-                            {'geo_lat': city['geo_lat'],
-                             'geo_lon': city['geo_lon'],
-                             'ecef': Transform.geodetic2ecef(float(city['geo_lat']),
-                                                             float(city['geo_lon']))} for city in cities}
-                    ecef_cities = []
-                    for key, value in cities.items():
-                        ecef_cities.append((key, value['ecef']))
-                    tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
-                    central_point = Transform.geodetic2ecef(float(coordinates[0]),
-                                                            float(coordinates[1]))
-                    result = tree.query_ball_point([central_point], r=radius)
-                    cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
-                    for key, value in cities.items():
-                        if key in cities_around and key != address_info['city']:
-                            self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
-                                              popup=key,
-                                              icon=self.icon_creator(color='gray')).add_to(new_map)
-                    return new_map
-
+                cities = {
+                    city['city']:
+                        {'geo_lat': city['geo_lat'],
+                         'geo_lon': city['geo_lon'],
+                         'ecef': Transform.geodetic2ecef(float(city['geo_lat']),
+                                                         float(city['geo_lon']))} for city in cities}
+                ecef_cities = []
+                for key, value in cities.items():
+                    ecef_cities.append((key, value['ecef']))
+                tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
+                central_point = Transform.geodetic2ecef(float(coordinates[0]),
+                                                        float(coordinates[1]))
+                result = tree.query_ball_point([central_point], r=radius)
+                cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
+                for key, value in cities.items():
+                    if key in cities_around and key != address_info['city']:
+                        self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
+                                          popup=key,
+                                          icon=self.icon_creator(color='gray')).add_to(new_map)
+                return new_map
 
 class Transform:
     """
