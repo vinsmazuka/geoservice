@@ -4,12 +4,12 @@ from .forms import UserForm
 
 
 def index(request):
+    args = dict()
     if request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
             address = form.cleaned_data.get("address")
             radius = form.cleaned_data.get("radius")
-            args = dict()
             args['form'] = form
             result = (core.Mapper(address).
                       create_map(cities=core.CsvReader.read_file(
@@ -20,7 +20,6 @@ def index(request):
             else:
                 args['resp'] = result._repr_html_()
     else:
-        args = dict()
         form = UserForm()
         args['form'] = form
     return render(request, 'showmap/index.html', args)
