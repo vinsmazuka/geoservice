@@ -5,8 +5,10 @@ from .forms import UserForm
 from .models import City
 
 
+row_data = list(City.objects.all())
+
+
 def index(request):
-    row_data = list(City.objects.all())
     cities = {city.city: {'geo_lat': city.geo_lat,
                           'geo_lon': city.geo_lon} for city in row_data}
     args = dict()
