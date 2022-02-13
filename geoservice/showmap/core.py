@@ -52,7 +52,7 @@ class Mapper:
         параметре экземпляра self.address,
         создает на карте маркеры городов в радиусе radius,
         если данный аргумент задан
-        :param cities: - словарт, содержащий информацию
+        :param cities: - словарь, содержащий информацию
         о городах(тип - dict)
         :param radius: радиус в км(тип - float)
         :return: объект-карту класса folium.Map
@@ -78,15 +78,10 @@ class Mapper:
             elif not isinstance(radius, float):
                 return 'радиус должен быть целым числом, либо числом с плавающей точкой'
             else:
-                cities = {
-                    city['city']:
-                        {'geo_lat': city['geo_lat'],
-                         'geo_lon': city['geo_lon'],
-                         'ecef': Transform.geodetic2ecef(float(city['geo_lat']),
-                                                         float(city['geo_lon']))} for city in cities}
                 ecef_cities = []
                 for key, value in cities.items():
-                    ecef_cities.append((key, value['ecef']))
+                    ecef_cities.append((key, Transform.geodetic2ecef(float(value['geo_lat']),
+                                                                     float(value['geo_lon']))))
                 tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
                 central_point = Transform.geodetic2ecef(float(coordinates[0]),
                                                         float(coordinates[1]))
@@ -98,6 +93,7 @@ class Mapper:
                                           popup=key,
                                           icon=self.icon_creator(color='gray')).add_to(new_map)
                 return new_map
+
 
 class Transform:
     """
@@ -141,6 +137,10 @@ class Transform:
             return distance
         else:
             return 2 * cls.a * sin(float(distance) / (2 * cls.b))
+
+
+transform_radius = Transform.euclidean_distance
+
 
 
 
