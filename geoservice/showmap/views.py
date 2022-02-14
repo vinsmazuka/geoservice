@@ -1,7 +1,6 @@
-from . import core
-
 from django.shortcuts import render
 
+from . import core
 from .forms import UserForm
 from .models import City
 
