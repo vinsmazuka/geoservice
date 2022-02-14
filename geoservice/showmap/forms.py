@@ -1,4 +1,4 @@
-from django.forms import Form, CharField
+from django.forms import CharField, Form
 
 
 class UserForm(Form):

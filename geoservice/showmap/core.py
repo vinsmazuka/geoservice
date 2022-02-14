@@ -1,10 +1,12 @@
 import csv
 import operator
-from math import radians, cos, sin, sqrt
-import numpy
+from math import cos, radians, sin, sqrt
+
 import folium
-from scipy.spatial import KDTree
+import numpy
 from dadata import Dadata
+from scipy.spatial import KDTree
+
 from . import datadata_config
 
 
