@@ -88,12 +88,13 @@ class Mapper:
                 central_point = Transform.geodetic2ecef(float(coordinates[0]),
                                                         float(coordinates[1]))
                 result = tree.query_ball_point([central_point], r=radius)
-                cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
-                for key, value in cities.items():
-                    if key in cities_around and key != address_info['city']:
-                        self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
-                                          popup=key,
-                                          icon=self.icon_creator(color='gray')).add_to(new_map)
+                if result:
+                    cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
+                    for key, value in cities.items():
+                        if key in cities_around and key != address_info['city']:
+                            self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
+                                              popup=key,
+                                              icon=self.icon_creator(color='gray')).add_to(new_map)
                 return new_map
 
 
