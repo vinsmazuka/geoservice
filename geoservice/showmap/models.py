@@ -31,5 +31,3 @@ class City(models.Model):
     def __str__(self):
         """Возвращает строковое представление экземпляра каласса City"""
         return f'{self.city}: {self.geo_lat}, {self.geo_lon}'
-
-

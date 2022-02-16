@@ -142,13 +142,3 @@ class Transform:
 
 
 transform_radius = Transform.euclidean_distance
-
-
-
-
-
-
-
-
-
-
