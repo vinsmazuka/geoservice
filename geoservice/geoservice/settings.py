@@ -1,8 +1,15 @@
 from pathlib import Path
 
+from django.utils.crypto import get_random_string
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-rz9*9=psv8gmwb8cpxop-+y55*giot(0nz6xtn$_tb8nnn6yo^'
+try:
+    from secret_key_file import SECRET_KEY
+except ImportError:
+    SECRET_KEY = get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)')
+    with open(Path(BASE_DIR / 'secret_key_file.py'), 'w') as key_file:
+        key_file.write("SECRET_KEY = '{key}'".format(key=SECRET_KEY))
 
 DEBUG = True
 
