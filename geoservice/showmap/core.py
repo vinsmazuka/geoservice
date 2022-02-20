@@ -48,7 +48,7 @@ class Mapper:
         """
         self.address = address
 
-    def create_map(self, cities, radius=None):
+    def create_map(self, cities, radius=''):
         """
         Создает карту, с центом в точке с адресом, указанным в
         параметре экземпляра self.address,
@@ -73,9 +73,7 @@ class Mapper:
         except ValueError:
             return 'введенный адрес - не корректный, или не существует'
         else:
-            if radius is None:
-                return new_map
-            elif radius == '':
+            if radius == '':
                 return new_map
             elif not isinstance(radius, float):
                 return 'радиус должен быть целым числом, либо числом с плавающей точкой'
