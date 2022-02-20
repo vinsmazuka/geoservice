@@ -74,6 +74,7 @@ class CoreTestCase(TestCase):
         map2 = moscow.create_map(cities=cities, radius='')
         error_case2 = moscow.create_map(cities=cities, radius='notdigit')
         map3 = moscow.create_map(cities=cities, radius=300.0)
+        map4 = moscow.create_map(cities=cities, radius=0.0)
         self.assertTrue(isinstance(map1, folium.Map))
         self.assertEqual([55.7540471, 37.620405], map1.location)
         self.assertEqual((100.0, '%'), map1.width)
@@ -87,6 +88,9 @@ class CoreTestCase(TestCase):
         self.assertEqual([55.7540471, 37.620405], map3.location)
         self.assertEqual((100.0, '%'), map3.width)
         self.assertEqual((70.0, '%'), map3.height)
+        self.assertTrue(isinstance(map4, folium.Map))
+        self.assertEqual((100.0, '%'), map4.width)
+        self.assertEqual((70.0, '%'), map4.height)
 
 
 
