@@ -22,10 +22,7 @@ def index(request):
             result = (core.Mapper(address).
                       create_map(cities=cities,
                                  radius=core.transform_radius(radius)))
-            if isinstance(result, str):
-                args['resp'] = result
-            else:
-                args['resp'] = result._repr_html_()
+            args['resp'] = result if isinstance(result, str) else result._repr_html_()
 
     def get_response():
         """формирует ответ в случае поступления GET-запроса"""
