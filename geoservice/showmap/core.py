@@ -73,11 +73,9 @@ class Mapper:
         except ValueError:
             return 'введенный адрес - не корректный, или не существует'
         else:
-            if radius == '':
-                return new_map
-            elif not isinstance(radius, float):
-                return 'радиус должен быть целым числом, либо числом с плавающей точкой'
-            else:
+            def radius_correct():
+                """возвращает карту с маркерами городов-соседей в заданном
+                радиусе от заданного адреса"""
                 ecef_cities = []
                 for key, value in cities.items():
                     ecef_cities.append((key, Transform.geodetic2ecef(float(value['geo_lat']),
@@ -85,15 +83,26 @@ class Mapper:
                 tree = KDTree(numpy.array(list(map(lambda x: x[1], ecef_cities))))
                 central_point = Transform.geodetic2ecef(float(coordinates[0]),
                                                         float(coordinates[1]))
-                result = tree.query_ball_point([central_point], r=radius)
-                if result:
-                    cities_around = [x[0] for x in operator.itemgetter(*result[0])(ecef_cities)]
+                neighbors_indexes = tree.query_ball_point([central_point], r=radius)
+                if neighbors_indexes:
+                    get_neighbors = operator.itemgetter(*neighbors_indexes[0])(ecef_cities)
+                    neighbors = [x[0] for x in get_neighbors]
                     for key, value in cities.items():
-                        if key in cities_around and key != address_info['city']:
+                        if key in neighbors and key != address_info['city']:
                             self.mark_creator(location=[value['geo_lat'], value['geo_lon']],
                                               popup=key,
                                               icon=self.icon_creator(color='gray')).add_to(new_map)
                 return new_map
+            check_radius = str(radius and isinstance(radius, float))
+            possible_values = {
+                '0.0': lambda: new_map,
+                '': lambda: new_map,
+                'False': lambda: 'радиус должен быть целым числом, '
+                                 'либо числом с плавающей точкой',
+                'True': radius_correct
+            }
+            result = possible_values[check_radius]
+            return result()
 
 
 class Transform:
