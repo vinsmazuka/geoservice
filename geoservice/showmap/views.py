@@ -29,9 +29,9 @@ def index(request):
         form = UserForm()
         args['form'] = form
 
-    possible_responses = {
+    responses = {
         'POST': post_response,
         'GET': get_response
     }
-    possible_responses[request.method]()
+    responses[request.method]()
     return render(request, 'showmap/index.html', args)
